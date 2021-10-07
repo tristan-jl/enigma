@@ -1,5 +1,5 @@
-pub mod components;
-pub mod utils;
+pub(crate) mod components;
+pub(crate) mod utils;
 
 use crate::components::plugboard::Plugboard;
 use crate::components::reflector::Reflector;
@@ -7,6 +7,7 @@ use crate::components::rotor::Rotor;
 use crate::components::Component;
 use crate::utils::WireSize;
 
+/// An Enigma machine with rotors, a reflector and a plugboard.
 #[derive(Debug)]
 pub struct Enigma {
     rotors: Vec<Rotor>,
@@ -15,6 +16,35 @@ pub struct Enigma {
 }
 
 impl Enigma {
+    /// Creates a new `Enigma` machine.
+    ///
+    /// Takes vectors of rotor names (should be in the form of Roman numerals from 'I'
+    /// to 'VIII'), ring settings and initial rotor positions to set the rotors; a
+    /// reflector type (should be one of 'a', 'b', 'c' or 'i' - the identity reflector);
+    /// and plugboard connections (should be a vector of 2-length strings).
+    ///
+    /// # Examples
+    ///
+    /// Creating an `Enigma` machine with rotors 'I', 'II', 'III', ring settings of 5, 7, 9,
+    /// ring positions of 15, 17, 19, the 'b' reflector and plugboard connections of 'A'
+    /// to 'b', 'g' to 'k' and 'n' to 't'.
+    ///
+    /// ```
+    /// use enigma::Enigma;
+    ///
+    /// let mut enigma = Enigma::new(
+    ///     vec!["I", "II", "III"],
+    ///     vec![5, 7, 9],
+    ///     vec![15, 17, 19],
+    ///     "b",
+    ///     vec!["ab", "gk", "nt"],
+    /// );
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// If the rotor names, ring settings and rotor positions do not have the same
+    /// length.
     pub fn new(
         rotor_names: Vec<&str>,
         ring_settings: Vec<WireSize>,
@@ -26,7 +56,7 @@ impl Enigma {
             || (rotor_names.len() != rotor_positions.len())
             || (rotor_names.len() <= 1)
         {
-            panic!("Rotor names, ring setting and rotor positions must have the same length and their length must be greater than 1")
+            panic!("Rotor names, ring settings and rotor positions must have the same length and their length must be greater than 1")
         }
 
         let mut rotors = Vec::new();
@@ -43,6 +73,42 @@ impl Enigma {
             reflector: Reflector::new(reflector_type),
             plugboard: Plugboard::new(plugboard_connections),
         }
+    }
+
+    /// Encrypts a message with the `Enigma` machine.
+    ///
+    /// Takes a message in the form of a string of Unicode characters. Message is
+    /// converted to lowercase before encryption and non-alphanumeric characters are
+    /// ignored (note: when ignored, the `Enigma` machine rotors are not rotated).
+    ///
+    /// # Examples
+    ///
+    /// Creating an `Enigma` machine (from `Enigma::new` example).
+    ///
+    /// ```
+    /// use enigma::Enigma;
+    ///
+    /// let mut enigma = Enigma::new(
+    ///     vec!["I", "II", "III"],
+    ///     vec![5, 7, 9],
+    ///     vec![15, 17, 19],
+    ///     "b",
+    ///     vec!["ab", "gk", "nt"],
+    /// );
+    /// let message = "hello world";
+    /// assert_eq!(enigma.encrypt(message), "glgtn lmzul");
+    /// ```
+    pub fn encrypt(&mut self, message: &str) -> String {
+        message
+            .to_lowercase()
+            .as_str()
+            .as_bytes()
+            .iter()
+            .map(|b| match b {
+                97..=122 => return (self.encrypt_single(b - 97) + 97) as char,
+                _ => return *b as char,
+            })
+            .collect::<String>()
     }
 
     fn rotate(&mut self) {
@@ -74,19 +140,6 @@ impl Enigma {
         res = self.plugboard.backward(res);
 
         res
-    }
-
-    pub fn encrypt(&mut self, message: &str) -> String {
-        message
-            .to_lowercase()
-            .as_str()
-            .as_bytes()
-            .iter()
-            .map(|b| match b {
-                97..=122 => return (self.encrypt_single(b - 97) + 97) as char,
-                _ => return *b as char,
-            })
-            .collect::<String>()
     }
 }
 

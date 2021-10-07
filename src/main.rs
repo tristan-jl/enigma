@@ -1,10 +1,10 @@
-use enigma::{utils::WireSize, Enigma};
+use enigma::Enigma;
 
 #[derive(Debug)]
 struct EnigmaArgs {
     rotor_names: Vec<String>,
-    ring_settings: Vec<WireSize>,
-    rotor_positions: Vec<WireSize>,
+    ring_settings: Vec<u8>,
+    rotor_positions: Vec<u8>,
     reflector_type: String,
     plugboard_connections: Vec<String>,
 }
@@ -37,6 +37,7 @@ fn parse_args() -> Result<(EnigmaArgs, String), pico_args::Error> {
     if p_args.contains(["-h", "--help"]) {
         const HELP: &str = "\
 Enigma
+
 USAGE:
   enigma [OPTIONS] [MESSAGE]
 FLAGS:
@@ -84,7 +85,7 @@ ARGS:
 fn parse_vec_string(s: &str) -> Result<Vec<String>, &'static str> {
     Ok(s.split(",").map(|s| s.trim().to_string()).collect())
 }
-fn parse_vec_wiresize(s: &str) -> Result<Vec<WireSize>, &'static str> {
+fn parse_vec_wiresize(s: &str) -> Result<Vec<u8>, &'static str> {
     Ok(s.split(",")
         .map(|s| s.parse().expect("Invalid number value"))
         .collect())
