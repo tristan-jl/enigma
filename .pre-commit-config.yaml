@@ -1,0 +1,19 @@
+repos:
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        entry: cargo fmt
+        types:
+          - rust
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: clippy
+        name: clippy
+        entry: cargo clippy --all-targets --all-features -- -D warnings # non-zero exit code on warnings
+        types:
+          - rust
+        language: system
+        pass_filenames: false
