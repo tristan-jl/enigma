@@ -1,5 +1,6 @@
 use crate::components::Component;
 use crate::utils::{encoding_to_wiring, WireSize, WiringSize};
+use crate::InvalidArgsError;
 
 #[derive(Debug)]
 pub struct Reflector {
@@ -7,13 +8,15 @@ pub struct Reflector {
 }
 
 impl Reflector {
-    pub fn new(reflector_type: &str) -> Reflector {
+    pub fn new(reflector_type: &str) -> Result<Reflector, InvalidArgsError> {
         match reflector_type.to_lowercase().as_str() {
-            "a" => Reflector::from_encoding("ejmzalyxvbwfcrquontspikhgd"),
-            "b" => Reflector::from_encoding("yruhqsldpxngokmiebfzcwvjat"),
-            "c" => Reflector::from_encoding("fvpjiaoyedrzxwgctkuqsbnmhl"),
-            "i" => Reflector::from_encoding("abcdefghijklmnopqrstuvwxyz"),
-            _ => panic!("Invalid reflector type, {}", reflector_type),
+            "a" => Ok(Reflector::from_encoding("ejmzalyxvbwfcrquontspikhgd")),
+            "b" => Ok(Reflector::from_encoding("yruhqsldpxngokmiebfzcwvjat")),
+            "c" => Ok(Reflector::from_encoding("fvpjiaoyedrzxwgctkuqsbnmhl")),
+            "i" => Ok(Reflector::from_encoding("abcdefghijklmnopqrstuvwxyz")),
+            _ => Err(InvalidArgsError::from(
+                format!("Invalid reflector type, {}", reflector_type).as_str(),
+            )),
         }
     }
 
@@ -51,5 +54,10 @@ mod tests {
         let r = Reflector::from_encoding(encoding);
 
         assert_eq!(wiring_to_encoding(r.wiring), encoding);
+    }
+    #[test]
+    fn reflector_construct() {
+        let r = Reflector::new("a").unwrap();
+        assert_eq!(r.forward(7), 23);
     }
 }

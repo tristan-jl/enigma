@@ -13,12 +13,12 @@ fn main() {
     let (args, message) = match parse_args() {
         Ok(v) => v,
         Err(e) => {
-            eprintln!("Error: {}.", e);
+            eprintln!("Error parsing input arguments: {}.", e);
             std::process::exit(1);
         }
     };
 
-    let mut enigma = Enigma::new(
+    let mut enigma = match Enigma::new(
         args.rotor_names.iter().map(|s| s.as_str()).collect(),
         args.ring_settings,
         args.rotor_positions,
@@ -27,7 +27,13 @@ fn main() {
             .iter()
             .map(|s| s.as_str())
             .collect(),
-    );
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("{}", e.message());
+            std::process::exit(1);
+        }
+    };
     println!("{}", enigma.encrypt(&message));
 }
 

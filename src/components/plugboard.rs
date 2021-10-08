@@ -1,6 +1,6 @@
 use crate::components::Component;
 use crate::utils::{WireSize, WiringSize};
-use core::panic;
+use crate::InvalidArgsError;
 use std::collections::HashSet;
 
 #[derive(Debug)]
@@ -9,7 +9,7 @@ pub struct Plugboard {
 }
 
 impl Plugboard {
-    pub fn new(connections: Vec<&str>) -> Plugboard {
+    pub fn new(connections: Vec<&str>) -> Result<Plugboard, InvalidArgsError> {
         let mut wiring: WiringSize = [0; 26];
         for (i, elem) in wiring.iter_mut().enumerate() {
             *elem = i as WireSize;
@@ -17,9 +17,12 @@ impl Plugboard {
 
         if !connections.is_empty() {
             let mut seen = HashSet::new();
-            connections.iter().for_each(|char_pair| {
+
+            for &char_pair in connections.iter() {
                 if char_pair.len() != 2 {
-                    panic!("plugboard connections {} not a pair", char_pair)
+                    return Err(InvalidArgsError::from(
+                        format!("plugboard connections {} not a pair", char_pair).as_str(),
+                    ));
                 }
 
                 let byte_slice = char_pair.as_bytes();
@@ -27,7 +30,9 @@ impl Plugboard {
                 let c2 = byte_slice[1] - 97;
 
                 if seen.contains(&c1) || seen.contains(&c2) {
-                    panic!("Invalid connections. {} or {} is duplicated.", c1, c2)
+                    return Err(InvalidArgsError::from(
+                        format!("Invalid connections. {} or {} is duplicated.", c1, c2).as_str(),
+                    ));
                 }
 
                 seen.insert(c1);
@@ -35,10 +40,10 @@ impl Plugboard {
 
                 wiring[c1 as usize] = c2;
                 wiring[c2 as usize] = c1;
-            })
+            }
         }
 
-        Plugboard { wiring }
+        Ok(Plugboard { wiring })
     }
 }
 
@@ -59,7 +64,7 @@ mod tests {
 
     #[test]
     fn plugboard_no_cons() {
-        let p = Plugboard::new(vec![]);
+        let p = Plugboard::new(vec![]).unwrap();
         let expected = "abcdefghijklmnopqrstuvwxyz";
 
         assert_eq!(wiring_to_encoding(p.wiring), expected);
@@ -67,7 +72,7 @@ mod tests {
 
     #[test]
     fn plugboard_cons() {
-        let p = Plugboard::new(vec!["az", "by", "cx", "dw", "ev"]);
+        let p = Plugboard::new(vec!["az", "by", "cx", "dw", "ev"]).unwrap();
         let expected = "zyxwvfghijklmnopqrstuedcba";
 
         assert_eq!(wiring_to_encoding(p.wiring), expected);

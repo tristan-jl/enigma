@@ -1,6 +1,9 @@
 pub(crate) mod components;
 pub(crate) mod utils;
 
+use core::fmt;
+use std::error::Error;
+
 use crate::components::plugboard::Plugboard;
 use crate::components::reflector::Reflector;
 use crate::components::rotor::Rotor;
@@ -41,22 +44,24 @@ impl Enigma {
     /// );
     /// ```
     ///
-    /// # Panics
+    /// # Errors
     ///
     /// If the rotor names, ring settings and rotor positions do not have the same
-    /// length.
+    /// length returns an `InvalidArgsError`.
     pub fn new(
         rotor_names: Vec<&str>,
         ring_settings: Vec<WireSize>,
         rotor_positions: Vec<WireSize>,
         reflector_type: &str,
         plugboard_connections: Vec<&str>,
-    ) -> Enigma {
+    ) -> Result<Enigma, InvalidArgsError> {
         if (rotor_names.len() != ring_settings.len())
             || (rotor_names.len() != rotor_positions.len())
             || (rotor_names.len() <= 1)
         {
-            panic!("Rotor names, ring settings and rotor positions must have the same length and their length must be greater than 1")
+            return Err(InvalidArgsError::from(
+                "Rotor names, ring settings and rotor positions must have the same length and their length must be greater than 1",
+            ));
         }
 
         let mut rotors = Vec::new();
@@ -68,11 +73,20 @@ impl Enigma {
             ))
         }
 
-        Enigma {
+        let reflector = match Reflector::new(reflector_type) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
+        let plugboard = match Plugboard::new(plugboard_connections) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
+
+        Ok(Enigma {
             rotors,
-            reflector: Reflector::new(reflector_type),
-            plugboard: Plugboard::new(plugboard_connections),
-        }
+            reflector,
+            plugboard,
+        })
     }
 
     /// Encrypts a message with the `Enigma` machine.
@@ -87,16 +101,20 @@ impl Enigma {
     ///
     /// ```
     /// use enigma::Enigma;
-    ///
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let mut enigma = Enigma::new(
     ///     vec!["I", "II", "III"],
     ///     vec![5, 7, 9],
     ///     vec![15, 17, 19],
     ///     "b",
     ///     vec!["ab", "gk", "nt"],
-    /// );
+    /// )?;
     /// let message = "hello world";
     /// assert_eq!(enigma.encrypt(message), "glgtn lmzul");
+    /// #     Ok(())
+    /// # }
     /// ```
     pub fn encrypt(&mut self, message: &str) -> String {
         message
@@ -143,6 +161,32 @@ impl Enigma {
     }
 }
 
+/// Error raised when invalid arguments are passed to function.
+#[derive(Debug, Clone)]
+pub struct InvalidArgsError {
+    message: String,
+}
+
+impl InvalidArgsError {
+    pub fn from(message: &str) -> Self {
+        InvalidArgsError {
+            message: message.to_string(),
+        }
+    }
+
+    pub fn message(&self) -> String {
+        self.message.to_string()
+    }
+}
+
+impl Error for InvalidArgsError {}
+
+impl fmt::Display for InvalidArgsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", &self.message)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::vec;
@@ -160,7 +204,7 @@ mod tests {
                         vec![0, 0, 0],
                         "b",
                         vec![],
-                    );
+                    ).unwrap();
                     let (input, expected) = $value;
                     assert_eq!(enigma.encrypt(input), expected);
                 }
@@ -184,7 +228,8 @@ mod tests {
             vec![25, 25, 25],
             "b",
             vec![],
-        );
+        )
+        .unwrap();
         let input: &str = "tomorrow and tomorrow and tomorrow creeps in this petty \
         pace from day to day to the last syllable of recorded time and all our \
         yesterdays have lighted fools the way to dusty death out out brief candle \
