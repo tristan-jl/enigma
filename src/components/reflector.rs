@@ -29,7 +29,7 @@ impl Component for Reflector {
         self.wiring[letter as usize]
     }
     fn backward(&self, letter: WireSize) -> WireSize {
-        return letter;
+        letter
     }
 }
 

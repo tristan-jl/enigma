@@ -28,21 +28,18 @@ impl Rotor {
         };
 
         match name {
-            "I" => return helper("EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16]),
-            "II" => return helper("AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4]),
-            "III" => return helper("BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21]),
-            "IV" => return helper("ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![21]),
-            "V" => return helper("VZBRGITYUPSDNHLXAWMJQOFECK", vec![21]),
-            "VI" => return helper("JPGVOUMFYQBENHZRDKASXLICTW", vec![21]),
-            "VII" => return helper("NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![21]),
-            "VIII" => return helper("FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![21]),
-            _ => return helper("ABCDEFGHIJKLMNOPQRSTUVWXYZ", vec![0]),
+            "I" => helper("EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16]),
+            "II" => helper("AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4]),
+            "III" => helper("BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21]),
+            "IV" => helper("ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![21]),
+            "V" => helper("VZBRGITYUPSDNHLXAWMJQOFECK", vec![21]),
+            "VI" => helper("JPGVOUMFYQBENHZRDKASXLICTW", vec![21]),
+            "VII" => helper("NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![21]),
+            "VIII" => helper("FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![21]),
+            _ => helper("ABCDEFGHIJKLMNOPQRSTUVWXYZ", vec![0]),
         }
     }
 
-    pub fn position(&self) -> WireSize {
-        return self.position.value();
-    }
     pub fn at_notch(&self) -> bool {
         self.notch_positions
             .iter()
@@ -83,38 +80,38 @@ mod tests {
     fn rotor_constructs() {
         let r = Rotor::new("I", 37, 45);
 
-        assert_eq!(r.position(), 11);
+        assert_eq!(r.position.value(), 11);
         assert_eq!(r.ring_setting.value(), 19);
     }
     #[test]
     fn rotor_notches() {
         let mut r = Rotor {
-            position: ClockInt::from_i32(5),
-            ring_setting: ClockInt::from_i32(0),
+            position: ClockInt::from_u8(5),
+            ring_setting: ClockInt::from_u8(0),
             wiring: [0; 26],
             inverse_wiring: [0; 26],
             notch_positions: vec![5, 10],
         };
 
         assert!(r.at_notch());
-        r.position = r.position + 1;
+        r.position += 1;
         assert!(!r.at_notch());
-        r.position = r.position + 4;
+        r.position += 4;
         assert!(r.at_notch());
     }
     #[test]
     fn rotor_turnover() {
         let mut r = Rotor {
-            position: ClockInt::from_i32(5),
-            ring_setting: ClockInt::from_i32(0),
+            position: ClockInt::from_u8(5),
+            ring_setting: ClockInt::from_u8(0),
             wiring: [0; 26],
             inverse_wiring: [0; 26],
             notch_positions: vec![5, 10],
         };
 
-        assert_eq!(r.position(), 5);
+        assert_eq!(r.position.value(), 5);
         r.turnover();
-        assert_eq!(r.position(), 6);
+        assert_eq!(r.position.value(), 6);
     }
     #[test]
     fn invert_wiring_works() {

@@ -15,7 +15,7 @@ impl Plugboard {
             *elem = i as WireSize;
         }
 
-        if connections.len() > 0 {
+        if !connections.is_empty() {
             let mut seen = HashSet::new();
             connections.iter().for_each(|char_pair| {
                 if char_pair.len() != 2 {

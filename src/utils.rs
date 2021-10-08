@@ -16,6 +16,7 @@ pub fn encoding_to_wiring(encoding: &str) -> WiringSize {
         .unwrap()
 }
 
+#[allow(dead_code)]
 pub fn wiring_to_encoding(wiring: WiringSize) -> String {
     wiring.iter().map(|x| (x + 97) as char).collect()
 }
@@ -26,12 +27,6 @@ pub struct ClockInt {
 }
 
 impl ClockInt {
-    pub fn from_i32(raw_value: i32) -> ClockInt {
-        ClockInt {
-            value: (raw_value.rem_euclid(MAX_VALUE.into())) as u8,
-        }
-    }
-
     pub fn from_u8(raw_value: u8) -> ClockInt {
         ClockInt {
             value: raw_value.rem_euclid(MAX_VALUE),
@@ -107,31 +102,27 @@ mod tests {
 
     #[test]
     fn clock_int_base() {
-        assert_eq!(ClockInt::from_i32(23).value(), 23)
+        assert_eq!(ClockInt::from_u8(23).value(), 23)
     }
     #[test]
     fn clock_int_overflow() {
-        assert_eq!(ClockInt::from_i32(27).value(), 1)
-    }
-    #[test]
-    fn clock_int_underflow() {
-        assert_eq!(ClockInt::from_i32(-1).value(), 25)
+        assert_eq!(ClockInt::from_u8(27).value(), 1)
     }
 
     #[test]
     fn clock_int_add() {
-        let mi = ClockInt::from_i32(23) + 7;
+        let mi = ClockInt::from_u8(23) + 7;
         assert_eq!(mi.value(), 4)
     }
     #[test]
     fn clock_int_add_assign() {
-        let mut mi = ClockInt::from_i32(23);
+        let mut mi = ClockInt::from_u8(23);
         mi += 34;
         assert_eq!(mi.value(), 5)
     }
     #[test]
     fn clock_int_sub() {
-        let mi = ClockInt::from_i32(6) - 18;
+        let mi = ClockInt::from_u8(6) - 18;
         assert_eq!(mi.value(), 14)
     }
 }

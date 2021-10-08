@@ -105,8 +105,8 @@ impl Enigma {
             .as_bytes()
             .iter()
             .map(|b| match b {
-                97..=122 => return (self.encrypt_single(b - 97) + 97) as char,
-                _ => return *b as char,
+                97..=122 => (self.encrypt_single(b - 97) + 97) as char,
+                _ => *b as char,
             })
             .collect::<String>()
     }
