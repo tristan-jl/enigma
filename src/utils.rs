@@ -10,7 +10,7 @@ pub fn encoding_to_wiring(encoding: &str) -> WiringSize {
         .to_lowercase()
         .as_bytes()
         .iter()
-        .map(|&b| (b as WireSize) - 97)
+        .map(|&b| b - 97)
         .collect::<Vec<WireSize>>()
         .try_into()
         .unwrap()
@@ -27,30 +27,31 @@ pub struct ClockInt {
 }
 
 impl ClockInt {
-    pub fn from_u8(raw_value: u8) -> ClockInt {
-        ClockInt {
-            value: raw_value.rem_euclid(MAX_VALUE),
-        }
-    }
-
     #[inline]
     pub fn value(&self) -> WireSize {
         self.value
     }
 }
 
+impl From<u8> for ClockInt {
+    fn from(value: u8) -> Self {
+        ClockInt {
+            value: value.rem_euclid(MAX_VALUE),
+        }
+    }
+}
 impl Add<Self> for ClockInt {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self::from_u8(self.value() + rhs.value())
+        Self::from(self.value() + rhs.value())
     }
 }
 impl Add<u8> for ClockInt {
     type Output = Self;
 
     fn add(self, rhs: u8) -> Self::Output {
-        Self::from_u8(self.value() + rhs)
+        Self::from(self.value() + rhs)
     }
 }
 impl AddAssign<u8> for ClockInt {
@@ -62,7 +63,7 @@ impl Sub<Self> for ClockInt {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::from_u8(
+        Self::from(
             (self.value() + MAX_VALUE - rhs.value().rem_euclid(MAX_VALUE)).rem_euclid(MAX_VALUE),
         )
     }
@@ -71,7 +72,7 @@ impl Sub<u8> for ClockInt {
     type Output = Self;
 
     fn sub(self, rhs: u8) -> Self::Output {
-        Self::from_u8((self.value() + MAX_VALUE - rhs.rem_euclid(MAX_VALUE)).rem_euclid(MAX_VALUE))
+        Self::from((self.value() + MAX_VALUE - rhs.rem_euclid(MAX_VALUE)).rem_euclid(MAX_VALUE))
     }
 }
 
@@ -102,27 +103,27 @@ mod tests {
 
     #[test]
     fn clock_int_base() {
-        assert_eq!(ClockInt::from_u8(23).value(), 23)
+        assert_eq!(ClockInt::from(23).value(), 23)
     }
     #[test]
     fn clock_int_overflow() {
-        assert_eq!(ClockInt::from_u8(27).value(), 1)
+        assert_eq!(ClockInt::from(27).value(), 1)
     }
 
     #[test]
     fn clock_int_add() {
-        let mi = ClockInt::from_u8(23) + 7;
+        let mi = ClockInt::from(23) + 7;
         assert_eq!(mi.value(), 4)
     }
     #[test]
     fn clock_int_add_assign() {
-        let mut mi = ClockInt::from_u8(23);
+        let mut mi = ClockInt::from(23);
         mi += 34;
         assert_eq!(mi.value(), 5)
     }
     #[test]
     fn clock_int_sub() {
-        let mi = ClockInt::from_u8(6) - 18;
+        let mi = ClockInt::from(6) - 18;
         assert_eq!(mi.value(), 14)
     }
 }

@@ -19,8 +19,8 @@ impl Rotor {
         let helper = move |encoding: &str, notch_positions: Vec<WireSize>| {
             let wiring = encoding_to_wiring(encoding.to_lowercase().as_str());
             Rotor {
-                position: ClockInt::from_u8(raw_position),
-                ring_setting: ClockInt::from_u8(raw_ring_setting),
+                position: ClockInt::from(raw_position),
+                ring_setting: ClockInt::from(raw_ring_setting),
                 wiring,
                 inverse_wiring: invert_wiring(wiring),
                 notch_positions,
@@ -53,12 +53,11 @@ impl Rotor {
 impl Component for Rotor {
     fn forward(&self, letter: WireSize) -> WireSize {
         let offset = self.position - self.ring_setting;
-        (ClockInt::from_u8(self.wiring[(offset + letter).value() as usize]) - offset).value()
+        (ClockInt::from(self.wiring[(offset + letter).value() as usize]) - offset).value()
     }
     fn backward(&self, letter: WireSize) -> WireSize {
         let offset = self.position - self.ring_setting;
-        (ClockInt::from_u8(self.inverse_wiring[(offset + letter).value() as usize]) - offset)
-            .value()
+        (ClockInt::from(self.inverse_wiring[(offset + letter).value() as usize]) - offset).value()
     }
 }
 
@@ -86,8 +85,8 @@ mod tests {
     #[test]
     fn rotor_notches() {
         let mut r = Rotor {
-            position: ClockInt::from_u8(5),
-            ring_setting: ClockInt::from_u8(0),
+            position: ClockInt::from(5),
+            ring_setting: ClockInt::from(0),
             wiring: [0; 26],
             inverse_wiring: [0; 26],
             notch_positions: vec![5, 10],
@@ -102,8 +101,8 @@ mod tests {
     #[test]
     fn rotor_turnover() {
         let mut r = Rotor {
-            position: ClockInt::from_u8(5),
-            ring_setting: ClockInt::from_u8(0),
+            position: ClockInt::from(5),
+            ring_setting: ClockInt::from(0),
             wiring: [0; 26],
             inverse_wiring: [0; 26],
             notch_positions: vec![5, 10],
