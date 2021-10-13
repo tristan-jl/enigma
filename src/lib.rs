@@ -34,14 +34,18 @@ impl Enigma {
     ///
     /// ```
     /// use enigma::Enigma;
-    ///
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let mut enigma = Enigma::new(
     ///     vec!["I", "II", "III"],
     ///     vec![5, 7, 9],
     ///     vec![15, 17, 19],
     ///     "b",
     ///     vec!["ab", "gk", "nt"],
-    /// );
+    /// )?;
+    /// #     Ok(())
+    /// # }
     /// ```
     ///
     /// # Errors
