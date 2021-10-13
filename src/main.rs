@@ -67,7 +67,7 @@ ARGS:
         rotor_positions: p_args.value_from_fn(["-p", "--positions"], parse_vec_wiresize)?,
         reflector_type: p_args
             .opt_value_from_str(["-r", "--reflector"])?
-            .unwrap_or_else(|| "i".to_string()),
+            .unwrap_or_else(|| String::from("i")),
         plugboard_connections: p_args
             .opt_value_from_fn(["-c", "--connections"], parse_vec_string)?
             .unwrap_or_default(),
@@ -83,13 +83,13 @@ ARGS:
         })
         .fold(String::new(), |x, y| x + " " + &y)
         .trim()
-        .to_string();
+        .to_owned();
 
     Ok((args, message))
 }
 
 fn parse_vec_string(s: &str) -> Result<Vec<String>, &'static str> {
-    Ok(s.split(',').map(|s| s.trim().to_string()).collect())
+    Ok(s.split(',').map(|s| s.trim().to_owned()).collect())
 }
 fn parse_vec_wiresize(s: &str) -> Result<Vec<u8>, &'static str> {
     Ok(s.split(',')

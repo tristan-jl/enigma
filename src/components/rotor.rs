@@ -3,10 +3,45 @@ use crate::utils::encoding_to_wiring;
 use crate::utils::ClockInt;
 use crate::utils::WireSize;
 use crate::utils::WiringSize;
+use crate::InvalidArgsError;
+use std::convert::TryFrom;
 use std::vec;
+
+#[derive(Debug, Clone, Copy)]
+enum RotorName {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+}
+
+impl TryFrom<&str> for RotorName {
+    type Error = InvalidArgsError;
+
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        match input {
+            "I" => Ok(RotorName::One),
+            "II" => Ok(RotorName::Two),
+            "III" => Ok(RotorName::Three),
+            "IV" => Ok(RotorName::Four),
+            "V" => Ok(RotorName::Five),
+            "VI" => Ok(RotorName::Six),
+            "VII" => Ok(RotorName::Seven),
+            "VIII" => Ok(RotorName::Eight),
+            _ => Err(InvalidArgsError::from(
+                "RotorName must be a roman numeral from 1 to 8.",
+            )),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Rotor {
+    name: RotorName,
     position: ClockInt,
     ring_setting: ClockInt,
     wiring: WiringSize,
@@ -15,10 +50,17 @@ pub struct Rotor {
 }
 
 impl Rotor {
-    pub fn new(name: &str, raw_position: WireSize, raw_ring_setting: WireSize) -> Rotor {
+    pub fn new(
+        name: &str,
+        raw_position: WireSize,
+        raw_ring_setting: WireSize,
+    ) -> Result<Rotor, InvalidArgsError> {
+        let rotor_name = RotorName::try_from(name)?;
+
         let helper = move |encoding: &str, notch_positions: Vec<WireSize>| {
             let wiring = encoding_to_wiring(encoding.to_lowercase().as_str());
             Rotor {
+                name: rotor_name,
                 position: ClockInt::from(raw_position),
                 ring_setting: ClockInt::from(raw_ring_setting),
                 wiring,
@@ -27,16 +69,15 @@ impl Rotor {
             }
         };
 
-        match name {
-            "I" => helper("EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16]),
-            "II" => helper("AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4]),
-            "III" => helper("BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21]),
-            "IV" => helper("ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![21]),
-            "V" => helper("VZBRGITYUPSDNHLXAWMJQOFECK", vec![21]),
-            "VI" => helper("JPGVOUMFYQBENHZRDKASXLICTW", vec![21]),
-            "VII" => helper("NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![21]),
-            "VIII" => helper("FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![21]),
-            _ => helper("ABCDEFGHIJKLMNOPQRSTUVWXYZ", vec![0]),
+        match &rotor_name {
+            RotorName::One => Ok(helper("EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16])),
+            RotorName::Two => Ok(helper("AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4])),
+            RotorName::Three => Ok(helper("BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21])),
+            RotorName::Four => Ok(helper("ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![9])),
+            RotorName::Five => Ok(helper("VZBRGITYUPSDNHLXAWMJQOFECK", vec![25])),
+            RotorName::Six => Ok(helper("JPGVOUMFYQBENHZRDKASXLICTW", vec![25, 12])),
+            RotorName::Seven => Ok(helper("NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![25, 12])),
+            RotorName::Eight => Ok(helper("FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![25, 12])),
         }
     }
 
@@ -77,7 +118,7 @@ mod tests {
 
     #[test]
     fn rotor_constructs() {
-        let r = Rotor::new("I", 37, 45);
+        let r = Rotor::new("I", 37, 45).unwrap();
 
         assert_eq!(r.position.value(), 11);
         assert_eq!(r.ring_setting.value(), 19);
@@ -85,6 +126,7 @@ mod tests {
     #[test]
     fn rotor_notches() {
         let mut r = Rotor {
+            name: RotorName::Eight,
             position: ClockInt::from(5),
             ring_setting: ClockInt::from(0),
             wiring: [0; 26],
@@ -101,6 +143,7 @@ mod tests {
     #[test]
     fn rotor_turnover() {
         let mut r = Rotor {
+            name: RotorName::Eight,
             position: ClockInt::from(5),
             ring_setting: ClockInt::from(0),
             wiring: [0; 26],

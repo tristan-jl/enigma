@@ -66,11 +66,10 @@ impl Enigma {
 
         let mut rotors = Vec::new();
         for i in (0..rotor_names.len()).rev() {
-            rotors.push(Rotor::new(
-                rotor_names[i],
-                rotor_positions[i],
-                ring_settings[i],
-            ))
+            match Rotor::new(rotor_names[i], rotor_positions[i], ring_settings[i]) {
+                Ok(v) => rotors.push(v),
+                Err(e) => return Err(e),
+            }
         }
 
         let reflector = match Reflector::new(reflector_type) {
@@ -168,14 +167,14 @@ pub struct InvalidArgsError {
 }
 
 impl InvalidArgsError {
-    pub fn from(message: &str) -> Self {
+    pub fn from(s: &str) -> Self {
         InvalidArgsError {
-            message: message.to_string(),
+            message: s.to_owned(),
         }
     }
 
-    pub fn message(&self) -> String {
-        self.message.to_string()
+    pub fn message(&self) -> &String {
+        &self.message
     }
 }
 
