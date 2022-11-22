@@ -10,8 +10,8 @@ pub(crate) struct Rotor {
 }
 
 macro_rules! rotor_cons {
-    ($t:ty, $name:tt, $encoding:literal, $notches: expr) => {
-        pub fn $name(ring_setting: usize, position: usize) -> $t {
+    ($name:ident, $encoding:literal, $notches: expr) => {
+        pub fn $name(ring_setting: usize, position: usize) -> Self {
             Self::new($encoding, position, ring_setting, $notches)
         }
     };
@@ -40,14 +40,28 @@ impl Rotor {
         }
     }
 
-    rotor_cons!(Self, i, "EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16]);
-    rotor_cons!(Self, ii, "AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4]);
-    rotor_cons!(Self, iii, "BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21]);
-    rotor_cons!(Self, iv, "ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![9]);
-    rotor_cons!(Self, v, "VZBRGITYUPSDNHLXAWMJQOFECK", vec![25]);
-    rotor_cons!(Self, vi, "JPGVOUMFYQBENHZRDKASXLICTW", vec![12, 25]);
-    rotor_cons!(Self, vii, "NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![12, 25]);
-    rotor_cons!(Self, viii, "FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![12, 25]);
+    rotor_cons!(i, "EKMFLGDQVZNTOWYHXUSPAIBRCJ", vec![16]);
+    rotor_cons!(ii, "AJDKSIRUXBLHWTMCQGZNPYFVOE", vec![4]);
+    rotor_cons!(iii, "BDFHJLCPRTXVZNYEIWGAKMUSQO", vec![21]);
+    rotor_cons!(iv, "ESOVPZJAYQUIRHXLNFTGKDCMWB", vec![9]);
+    rotor_cons!(v, "VZBRGITYUPSDNHLXAWMJQOFECK", vec![25]);
+    rotor_cons!(vi, "JPGVOUMFYQBENHZRDKASXLICTW", vec![12, 25]);
+    rotor_cons!(vii, "NZJHGRCXMYSWBOUFAIVLPEKQDT", vec![12, 25]);
+    rotor_cons!(viii, "FKQHTLXOCBJSPDZRAMEWNIUYGV", vec![12, 25]);
+
+    pub fn from_name(name: &str, ring_setting: usize, position: usize) -> Self {
+        match name {
+            "I" => Self::i(ring_setting, position),
+            "II" => Self::ii(ring_setting, position),
+            "III" => Self::iii(ring_setting, position),
+            "IV" => Self::iv(ring_setting, position),
+            "V" => Self::v(ring_setting, position),
+            "VI" => Self::vi(ring_setting, position),
+            "VII" => Self::vii(ring_setting, position),
+            "VIII" => Self::viii(ring_setting, position),
+            _ => Self::default(),
+        }
+    }
 
     pub fn at_notch(&self) -> bool {
         self.notch_position.iter().any(|&n| self.position == n)
@@ -62,12 +76,12 @@ impl Rotor {
         ((wiring[((letter as isize + shift + 26) % 26) as usize] as isize - shift + 26) % 26) as u8
     }
 
-    fn forward(&self, letter: u8) -> u8 {
+    pub fn forward(&self, letter: u8) -> u8 {
         debug_assert!((letter as usize) < ALPHABET_SIZE);
         self.encipher(self.forward_wiring, letter)
     }
 
-    fn backward(&self, letter: u8) -> u8 {
+    pub fn backward(&self, letter: u8) -> u8 {
         debug_assert!((letter as usize) < ALPHABET_SIZE);
         self.encipher(self.backward_wiring, letter)
     }
@@ -119,13 +133,9 @@ impl Plugboard {
         Self { wiring }
     }
 
-    fn forward(&self, letter: u8) -> u8 {
+    pub fn forward(&self, letter: u8) -> u8 {
         debug_assert!((letter as usize) < ALPHABET_SIZE);
         self.wiring[letter as usize]
-    }
-
-    fn backward(&self, letter: u8) -> u8 {
-        self.forward(letter)
     }
 }
 
@@ -160,7 +170,16 @@ impl Reflector {
         Self::from_encoding("FVPJIAOYEDRZXWGCTKUQSBNMHL")
     }
 
-    fn forward(&self, letter: u8) -> u8 {
+    pub fn from_name(name: &str) -> Self {
+        match name {
+            "A" => Self::a(),
+            "B" => Self::b(),
+            "C" => Self::c(),
+            _ => Self::default(),
+        }
+    }
+
+    pub fn forward(&self, letter: u8) -> u8 {
         debug_assert!((letter as usize) < ALPHABET_SIZE);
         self.wiring[letter as usize]
     }
@@ -180,9 +199,10 @@ mod tests {
 
     #[test]
     fn test_rotor_wiring() {
-        let plug = Plugboard::from_connections("");
-        let expected = identity_wiring();
-        assert_eq!(plug.wiring, expected);
+        let rotor = Rotor::i(0, 0);
+        for i in 0..26 {
+            assert_eq!(rotor.backward(rotor.forward(i)), i);
+        }
     }
 
     #[test]

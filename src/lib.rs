@@ -17,6 +17,11 @@ pub(crate) fn char_to_wire(c: char) -> u8 {
     (c.to_ascii_uppercase() as u8) - 65
 }
 
+pub(crate) fn wire_to_char(w: u8) -> char {
+    debug_assert!(w < 26);
+    (w + 65) as char
+}
+
 pub(crate) fn encoding_to_wiring(encoding: impl Into<String>) -> [u8; ALPHABET_SIZE] {
     let encoding = encoding.into();
     debug_assert_eq!(encoding.len(), ALPHABET_SIZE);
