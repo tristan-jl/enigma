@@ -31,8 +31,8 @@ struct Cli {
     #[clap(use_value_delimiter = true)]
     positions: Vec<usize>,
 
-    /// Message to encrypt/decrypt.
-    message: String,
+    /// Message to encrypt/decrypt. If not given reads from stdin.
+    message: Option<String>,
 }
 
 #[derive(clap::ValueEnum, Clone, Debug)]
@@ -120,7 +120,29 @@ fn main() {
         cli.reflector.to_string().as_str(),
         &cli.connections,
     );
-    println!("{}", machine.encrypt(&cli.message));
+
+    let mut buffer = String::new();
+    let message = match &cli.message {
+        Some(m) => m,
+        None => {
+            let stdin = std::io::stdin();
+
+            for line in stdin.lines() {
+                match line {
+                    Ok(ref line) => {
+                        buffer.push_str(line);
+                    }
+                    Err(err) => {
+                        eprintln!("{}", err);
+                        std::process::exit(1);
+                    }
+                }
+            }
+            &buffer
+        }
+    };
+
+    println!("{}", machine.encrypt(message));
 }
 
 #[cfg(test)]
