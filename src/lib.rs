@@ -1,8 +1,13 @@
+#![deny(missing_docs)]
+//! Implementation of the Enigma machine. Simulates a common 3-rotor machine with the common 8
+//! rotors and 3 reflectors. [Wikipedia](https://en.wikipedia.org/wiki/Enigma_machine) has a good
+//! overview.
 mod components;
 mod machine;
 
 pub use machine::Machine;
 
+/// Size of the alphabet used. Fixes the size of the rotors. Currently this is A-Z.
 pub const ALPHABET_SIZE: usize = 26;
 
 pub(crate) fn identity_wiring() -> [u8; ALPHABET_SIZE] {

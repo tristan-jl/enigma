@@ -31,18 +31,8 @@ struct Cli {
     #[clap(use_value_delimiter = true)]
     positions: Vec<usize>,
 
-    /// Message to encrypt/decrypt. Spaces are kept.
+    /// Message to encrypt/decrypt.
     message: String,
-}
-
-macro_rules! display_enums {
-    ($t:ty) => {
-        impl Display for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{:?}", self)
-            }
-        }
-    };
 }
 
 #[derive(clap::ValueEnum, Clone, Debug)]
@@ -66,6 +56,16 @@ enum ReflectorNames {
     A,
     B,
     C,
+}
+
+macro_rules! display_enums {
+    ($t:ty) => {
+        impl Display for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:?}", self)
+            }
+        }
+    };
 }
 
 display_enums!(RotorNames);
